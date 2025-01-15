@@ -1,0 +1,8 @@
+/.idea/
+/elasticsearch-kibana/data/_state
+/elasticsearch-kibana/data/indices
+/elasticsearch-kibana/data/snapshot_cache
+/elasticsearch-kibana/data/node.lock
+/elasticsearch-kibana/data/nodes
+
+

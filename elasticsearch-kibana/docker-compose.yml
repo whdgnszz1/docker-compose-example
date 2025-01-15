@@ -1,0 +1,61 @@
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: es01
+    environment:
+      node.name: es01
+      cluster.name: es-docker-cluster
+      bootstrap.memory_lock: "true"
+      network.bind_host: "0.0.0.0"
+      network.publish_host: "127.0.0.1"
+      http.port: "9200"
+      transport.port: "9300"
+      discovery.seed_hosts: '["127.0.0.1:9300"]'
+      cluster.initial_master_nodes: '["127.0.0.1:9300"]'
+      xpack.security.enabled: "false"
+      xpack.security.enrollment.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./data:/usr/share/elasticsearch/data
+      - ./attachment:/usr/share/elasticsearch/attachment
+    ports:
+      - "9200:9200"
+      - "5005:5005"
+    networks:
+      - elastic
+    entrypoint: |
+      /bin/bash -c "
+        if [ ! -f /usr/share/elasticsearch/config/plugins_installed ]; then
+          /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-nori &&
+          touch /usr/share/elasticsearch/config/plugins_installed;
+        fi &&
+        if [ -d /usr/share/elasticsearch/config/dictionary ]; then
+          rm -r /usr/share/elasticsearch/config/dictionary;
+        fi &&
+        mkdir /usr/share/elasticsearch/config/dictionary &&
+        cp /usr/share/elasticsearch/attachment/*.txt /usr/share/elasticsearch/config/dictionary/ || true &&
+        /usr/local/bin/docker-entrypoint.sh
+      "
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:8.12.2
+    container_name: kib01
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: "http://es01:9200"
+      ELASTICSEARCH_HOSTS: "http://es01:9200"
+    networks:
+      - elastic
+
+volumes:
+  data01:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge

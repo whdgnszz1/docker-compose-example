@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7.4.0
+    ports: 
+      - 6379:6379
+    volumes:
+      - ./data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    # restart: always
+    command: /bin/bash -c "
+      if [ ! -f /usr/local/etc/redis/users.acl ]; then
+        touch /usr/local/etc/redis/users.acl;
+      fi &&
+      redis-server /usr/local/etc/redis/redis.conf
+      "
