@@ -2,7 +2,7 @@ version: "2.2"
 
 services:
   setup:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
     user: "0"
@@ -70,6 +70,8 @@ services:
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata01:/usr/share/elasticsearch/data
+      - ./logs/es01:/usr/share/elasticsearch/logs
+      - ./custom_config/log4j2.file.properties:/usr/share/elasticsearch/config/log4j2.properties
     ports:
       - ${ES_PORT}:9200
     environment:
@@ -112,6 +114,8 @@ services:
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata02:/usr/share/elasticsearch/data
+      - ./logs/es02:/usr/share/elasticsearch/logs
+      - ./custom_config/log4j2.file.properties:/usr/share/elasticsearch/config/log4j2.properties
     environment:
       - node.name=es02
       - cluster.name=${CLUSTER_NAME}
@@ -151,6 +155,8 @@ services:
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata03:/usr/share/elasticsearch/data
+      - ./logs/es03:/usr/share/elasticsearch/logs
+      - ./custom_config/log4j2.file.properties:/usr/share/elasticsearch/config/log4j2.properties
     environment:
       - node.name=es03
       - cluster.name=${CLUSTER_NAME}
@@ -213,6 +219,27 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+
+  filebeat:
+    depends_on:
+      es01:
+        condition: service_healthy
+      es02:
+        condition: service_healthy
+      es03:
+        condition: service_healthy
+    image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/filebeat/certs
+      - "./logs/:/usr/share/filebeat/logs"
+      - "./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    environment:
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_HOSTS=https://es01:9200
+      - KIBANA_HOSTS=http://kibana:5601
 
 volumes:
   certs:
