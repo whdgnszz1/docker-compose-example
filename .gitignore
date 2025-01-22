@@ -6,3 +6,4 @@
 /elasticsearch-kibana/data/nodes
 
 /elasticsearch-cluster/logs
+/elasticsearch-metric/logs
