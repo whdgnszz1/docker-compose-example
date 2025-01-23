@@ -7,3 +7,4 @@
 
 /elasticsearch-cluster/logs
 /elasticsearch-metric/logs
+/elasticsearch-monitoring/logs

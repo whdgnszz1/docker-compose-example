@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'elasticsearch-exporter'
+    metrics_path: /metrics
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - 'elasticsearch-exporter:9114'
+          - 'elasticsearch-exporter2:9114'
+          - 'elasticsearch-exporter3:9114'
